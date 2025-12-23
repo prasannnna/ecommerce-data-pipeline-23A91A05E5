@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+
+# Data
+data/raw/*.csv
+data/staging/*.json
+data/processed/*.json
+
+# Logs
+logs/
+
+# Docker
+*.log
+
+# IDE
+.vscode/
+.idea/
