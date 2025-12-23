@@ -1,0 +1,21 @@
+database:
+  host: ${DB_HOST}
+  port: 5432
+  name: ecommerce_db
+  user: ${DB_USER}
+  password: ${DB_PASSWORD}
+
+data_generation:
+  customers: 1000
+  products: 500
+  transactions: 10000
+  start_date: "2023-01-01"
+  end_date: "2024-01-01"
+
+pipeline:
+  batch_size: 1000
+  retries: 3
+  log_level: INFO
+
+bi:
+  tool: powerbi
