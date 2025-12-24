@@ -1,53 +1,83 @@
+
+
 CREATE SCHEMA IF NOT EXISTS production;
 
-CREATE TABLE production.customers (
+
+CREATE TABLE IF NOT EXISTS production.customers (
     customer_id VARCHAR(20) PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
     phone VARCHAR(30),
-    registration_date DATE,
+    registration_date DATE NOT NULL,
     city VARCHAR(50),
     state VARCHAR(50),
     country VARCHAR(50),
     age_group VARCHAR(10),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE production.products (
+
+CREATE TABLE IF NOT EXISTS production.products (
     product_id VARCHAR(20) PRIMARY KEY,
-    product_name VARCHAR(100),
-    category VARCHAR(50),
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50) NOT NULL,
     sub_category VARCHAR(50),
-    price DECIMAL(12,2) CHECK (price >= 0),
-    cost DECIMAL(12,2),
+    price DECIMAL(10,2) NOT NULL CHECK (price > 0),
+    cost DECIMAL(10,2) NOT NULL CHECK (cost >= 0),
     brand VARCHAR(100),
-    stock_quantity INT CHECK (stock_quantity >= 0),
+    stock_quantity INTEGER CHECK (stock_quantity >= 0),
     supplier_id VARCHAR(20),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    profit_margin DECIMAL(5,2),
+    price_category VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE production.transactions (
+
+CREATE TABLE IF NOT EXISTS production.transactions (
     transaction_id VARCHAR(20) PRIMARY KEY,
-    customer_id VARCHAR(20) REFERENCES production.customers(customer_id),
-    transaction_date DATE,
+    customer_id VARCHAR(20) NOT NULL,
+    transaction_date DATE NOT NULL,
     transaction_time TIME,
-    payment_method VARCHAR(50),
-    shipping_address TEXT,
-    total_amount DECIMAL(12,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    payment_method VARCHAR(30),
+    shipping_address VARCHAR(255),
+    total_amount DECIMAL(12,2) CHECK (total_amount > 0),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_transactions_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES production.customers(customer_id)
 );
 
-CREATE TABLE production.transaction_items (
+CREATE TABLE IF NOT EXISTS production.transaction_items (
     item_id VARCHAR(20) PRIMARY KEY,
-    transaction_id VARCHAR(20) REFERENCES production.transactions(transaction_id),
-    product_id VARCHAR(20) REFERENCES production.products(product_id),
-    quantity INT CHECK (quantity > 0),
-    unit_price DECIMAL(12,2),
-    discount_percentage INTEGER CHECK (discount_percentage BETWEEN 0 AND 100),
-    line_total DECIMAL(12,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    transaction_id VARCHAR(20) NOT NULL,
+    product_id VARCHAR(20) NOT NULL,
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    unit_price DECIMAL(10,2) NOT NULL CHECK (unit_price > 0),
+    discount_percentage DECIMAL(5,2) CHECK (discount_percentage BETWEEN 0 AND 100),
+    line_total DECIMAL(12,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_items_transaction
+        FOREIGN KEY (transaction_id)
+        REFERENCES production.transactions(transaction_id),
+    CONSTRAINT fk_items_product
+        FOREIGN KEY (product_id)
+        REFERENCES production.products(product_id)
 );
 
-CREATE INDEX idx_transactions_customer ON production.transactions(customer_id);
-CREATE INDEX idx_transactions_date ON production.transactions(transaction_date);
+
+CREATE INDEX IF NOT EXISTS idx_transactions_customer
+    ON production.transactions(customer_id);
+
+CREATE INDEX IF NOT EXISTS idx_transactions_date
+    ON production.transactions(transaction_date);
+
+CREATE INDEX IF NOT EXISTS idx_items_transaction
+    ON production.transaction_items(transaction_id);
+
+CREATE INDEX IF NOT EXISTS idx_items_product
+    ON production.transaction_items(product_id);
