@@ -1,77 +1,152 @@
 import pandas as pd
 import json
 import time
-from sqlalchemy import create_engine, text
 import os
-from dotenv import load_dotenv
-load_dotenv()
+import yaml
+from datetime import datetime
+from sqlalchemy import create_engine, text
+
+
+with open("config/config.yaml", "r") as f:
+    config = yaml.safe_load(f)
+
+db_cfg = config["database"]
+
+DB_HOST = os.getenv(
+    "DB_HOST",
+    db_cfg["host"].replace("${DB_HOST}", "localhost")
+)
+DB_PORT = os.getenv(
+    "DB_PORT",
+    str(db_cfg["port"])
+)
+DB_NAME = os.getenv(
+    "DB_NAME",
+    db_cfg["name"]
+)
+DB_USER = os.getenv(
+    "DB_USER",
+    db_cfg["user"].replace("${DB_USER}", "admin")
+)
+DB_PASSWORD = os.getenv(
+    "DB_PASSWORD",
+    db_cfg["password"].replace("${DB_PASSWORD}", "password")
+)
+
+ENGINE_URL = (
+    f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}"
+    f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+)
+
+
+PIPELINE_CFG = config.get("pipeline", {})
+BATCH_SIZE = PIPELINE_CFG.get("batch_size", 1000)
+
+RAW_DATA_PATH = "data/raw"
+OUTPUT_PATH = "data/staging"
+os.makedirs(OUTPUT_PATH, exist_ok=True)
+
+TABLE_ORDER = [
+    "customers",
+    "products",
+    "transactions",
+    "transaction_items"
+]
 
 
 def load_csv_to_staging(csv_path: str, table_name: str, connection) -> dict:
     df = pd.read_csv(csv_path)
-    rows = len(df)
-    df.to_sql(table_name, connection, schema="staging", if_exists="append", index=False, method="multi")
-    return {"rows_loaded": rows, "status": "success"}
+
+    df.to_sql(
+        table_name,
+        connection,
+        schema="staging",
+        if_exists="append",
+        index=False,
+        method="multi",
+        chunksize=BATCH_SIZE
+    )
+
+    return {
+        "rows_loaded": len(df),
+        "status": "success"
+    }
 
 
 def bulk_insert_data(df: pd.DataFrame, table_name: str, connection) -> int:
-    df.to_sql(table_name, connection, schema="staging", if_exists="append", index=False, method="multi")
+    df.to_sql(
+        table_name,
+        connection,
+        schema="staging",
+        if_exists="append",
+        index=False,
+        method="multi",
+        chunksize=BATCH_SIZE
+    )
     return len(df)
 
 
 def validate_staging_load(connection) -> dict:
-    result = {}
-    tables = ["customers", "products", "transactions", "transaction_items"]
-
-    for table in tables:
+    results = {}
+    for table in TABLE_ORDER:
         count = connection.execute(
             text(f"SELECT COUNT(*) FROM staging.{table}")
         ).scalar()
-        result[table] = count
-
-    return result
+        results[table] = count
+    return results
 
 
 if __name__ == "__main__":
-    start = time.time()
+    start_time = time.time()
+    engine = create_engine(ENGINE_URL)
 
-    engine = create_engine(
-    f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
-    f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
-    )
-    conn = engine.connect()
-    trans = conn.begin()
-
-    summary = {}
-
-    try:
-        for table in ["customers", "products", "transactions", "transaction_items"]:
-            conn.execute(text(f"TRUNCATE staging.{table}"))
-
-            res = load_csv_to_staging(
-                f"data/raw/{table}.csv",
-                table,
-                engine
-            )
-
-            summary[f"staging.{table}"] = res
-
-        trans.commit()
-
-    except Exception as e:
-        trans.rollback()
-        raise e
-
-    execution_time = round(time.time() - start, 2)
-
-    report = {
-        "ingestion_timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
-        "tables_loaded": summary,
-        "total_execution_time_seconds": execution_time
+    ingestion_report = {
+        "ingestion_timestamp": datetime.now().isoformat(),
+        "tables_loaded": {},
+        "row_counts": {},
+        "total_execution_time_seconds": None
     }
 
-    os.makedirs("data/staging", exist_ok=True)
-    with open("data/staging/ingestion_summary.json", "w") as f:
-        json.dump(report, f, indent=4)
+    try:
+       
+        with engine.begin() as conn:
+            # Truncate tables (reverse order for safety)
+            for table in reversed(TABLE_ORDER):
+                conn.execute(text(f"TRUNCATE TABLE staging.{table}"))
 
-    print("Ingestion Completed")
+            # Load CSV files
+            for table in TABLE_ORDER:
+                csv_file = os.path.join(RAW_DATA_PATH, f"{table}.csv")
+
+                if not os.path.exists(csv_file):
+                    raise FileNotFoundError(f"Missing CSV file: {csv_file}")
+
+                result = load_csv_to_staging(csv_file, table, conn)
+                ingestion_report["tables_loaded"][f"staging.{table}"] = result
+
+       
+        with engine.connect() as conn:
+            ingestion_report["row_counts"] = validate_staging_load(conn)
+
+        ingestion_report["total_execution_time_seconds"] = round(
+            time.time() - start_time, 2
+        )
+
+        with open(
+            os.path.join(OUTPUT_PATH, "ingestion_summary.json"),
+            "w"
+        ) as f:
+            json.dump(ingestion_report, f, indent=4)
+
+        print("Data ingestion into staging completed successfully")
+
+    except Exception as e:
+        ingestion_report["error"] = str(e)
+
+        with open(
+            os.path.join(OUTPUT_PATH, "ingestion_summary.json"),
+            "w"
+        ) as f:
+            json.dump(ingestion_report, f, indent=4)
+
+        raise
