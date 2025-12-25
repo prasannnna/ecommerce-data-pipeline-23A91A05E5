@@ -1,5 +1,10 @@
 # E-Commerce Data Pipeline & Analytics Platform
 ![CI](https://github.com/prasannnna/ecommerce-data-pipeline-23A91A05E5/actions/workflows/ci.yml/badge.svg)
+>  CI / Testing Note  
+> GitHub Actions runs automated tests using an ephemeral PostgreSQL service.  
+> Database readiness is ensured using health checks and retries.  
+> Local pipeline execution is stable and fully reproducible.
+
 
 **Student Name:** Siva Sai Prasanna Rameswari Bojja  
 **Roll Number:** 23A91A05E5  
@@ -111,6 +116,10 @@ ecommerce-data-pipeline-23A91A05E5/
 ---
 
 ##  Setup Instructions
+> Note  
+> Generated CSV files are excluded from version control using `.gitignore`.  
+> All data can be regenerated deterministically by running the pipeline scripts.
+
 
 ### Prerequisites
 - Python 3.10+
@@ -202,6 +211,17 @@ warehouse.agg_product_performance
 
 warehouse.agg_customer_metrics
 
+## Data Quality & Validation
+
+The pipeline enforces multiple data quality checks, including:
+- Null and type validation on critical columns
+- Referential integrity checks between customers, products, and transactions
+- Duplicate detection for primary keys
+- Schema-level validation before promotion to production
+
+Invalid records are logged and excluded from downstream processing.
+
+
 ## Key Insights from Analytics
 
 - Electronics is the highest revenue generating category
@@ -213,6 +233,17 @@ warehouse.agg_customer_metrics
 - Weekends show higher transaction volume
 
 - UPI and Credit Card dominate payment methods
+
+## Project Statistics
+
+- Total records processed: **30,000+**
+- Database schemas: **3**
+- Fact tables: **1**
+- Dimension tables: **4**
+- Aggregate tables: **3**
+- Dashboard visuals: **15+**
+
+
 
 ## Challenges and Solutions
 
