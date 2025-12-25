@@ -9,7 +9,7 @@ Submission Date: 25-12-2025
 
 ## GitHub Repository
 Repository URL: https://github.com/prasannnna/ecommerce-data-pipeline-23A91A05E5  
-
+Release Tag: v1.1
 Repository Status: Public
 
 Total Commits: ~25–30 
