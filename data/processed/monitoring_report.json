@@ -1,0 +1,16 @@
+{
+    "monitoring_timestamp": "2025-12-25T12:09:28.513376",
+    "pipeline_health": "healthy",
+    "checks": {
+        "data_volume": {
+            "status": "ok",
+            "actual_count": 29922
+        },
+        "data_freshness": {
+            "status": "ok",
+            "warehouse_latest_record": "2025-12-25 06:13:34.003799"
+        }
+    },
+    "alerts": [],
+    "overall_health_score": 100
+}
