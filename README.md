@@ -244,6 +244,57 @@ Invalid records are logged and excluded from downstream processing.
 - Dashboard visuals: **15+**
 
 
+### Test Coverage Verification
+
+Unit tests are implemented using **pytest** and **pytest-cov**.
+
+To verify test coverage locally, run:
+```
+pytest --cov=scripts --cov-report=html
+```
+
+---
+
+### Database Schema Verification
+
+SQL DDL scripts are provided to create all required schemas:
+
+- staging schema  
+- production schema  
+- warehouse schema (star schema)  
+
+DDL files are located under:
+```
+sql/ddl/
+```
+
+Each schema can be created using:
+```
+psql -f sql/ddl/<schema_file>.sql
+```
+
+---
+
+### Data Artifacts Generation
+
+Data artifacts are generated dynamically by the pipeline and are excluded
+from version control using `.gitignore`.
+
+### To generate all required output files, run:
+```bash
+python scripts/pipeline_orchestrator.py
+```
+This execution generates:
+- Raw CSV files  
+- JSON ingestion, validation, transformation, and monitoring reports  
+- Analytical query result exports  
+
+### Generated artifacts are stored under:
+```
+data/raw/
+data/processed/
+data/quality_reports/
+```
 
 ## Challenges and Solutions
 
