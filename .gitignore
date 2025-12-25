@@ -1,21 +1,42 @@
+
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
 .env
+.env.*
+venv/
+.venv/
 
-# Data
+# Data files
 data/raw/*.csv
-data/staging/*.json
-data/processed/*.json
+data/staging/*.csv
+data/processed/*.csv
+
+# Keep JSON reports if required
+!data/staging/*.json
+!data/processed/*.json
+
 
 # Logs
 logs/
-
-# Docker
 *.log
 
-# IDE
+# Database / Docker
+postgres_data/
+*.db
+
+# Jupyter / IDE
+.ipynb_checkpoints/
 .vscode/
 .idea/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Test & coverage
+.coverage
+htmlcov/
+

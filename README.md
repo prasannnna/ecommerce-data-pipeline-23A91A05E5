@@ -1,4 +1,5 @@
 # E-Commerce Data Pipeline & Analytics Platform
+![CI](https://github.com/prasannnna/ecommerce-data-pipeline-23A91A05E5/actions/workflows/ci.yml/badge.svg)
 
 **Student Name:** Siva Sai Prasanna Rameswari Bojja  
 **Roll Number:** 23A91A05E5  
@@ -20,15 +21,25 @@ The pipeline processes **30,000+ records**, maintains **100% referential integri
 ### Data Flow
 
 Raw CSV Data
+
 ↓
+
 Staging Schema (staging)
+
 ↓
+
 Production Schema (production)
+
 ↓
+
 Warehouse Schema (warehouse - Star Schema)
+
 ↓
+
 Analytics (SQL + Python)
+
 ↓
+
 Power BI Dashboard
 
 
