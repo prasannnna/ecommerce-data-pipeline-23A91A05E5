@@ -155,7 +155,7 @@ python scripts/transformation/staging_to_production.py
 python scripts/transformation/load_warehouse.py
 python scripts/transformation/generate_analytics.py
 ```
-Testing and Code Coverage
+### Testing and Code Coverage
 
 Unit tests are implemented using pytest and pytest-cov.
 
