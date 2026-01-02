@@ -119,7 +119,7 @@ ecommerce-data-pipeline-23A91A05E5/
 > Note  
 > Generated CSV files are excluded from version control using `.gitignore`.  
 > All data can be regenerated deterministically by running the pipeline scripts.
-
+> This is a design decision to avoid committing large datasets and to ensure reproducibility.
 
 ### Prerequisites
 - Python 3.10+
@@ -155,14 +155,20 @@ python scripts/transformation/staging_to_production.py
 python scripts/transformation/load_warehouse.py
 python scripts/transformation/generate_analytics.py
 ```
-## Running Tests
+Testing and Code Coverage
 
-```bash
-pytest tests/ -v
+Unit tests are implemented using pytest and pytest-cov.
+
+Run Tests
 ```
+pytest tests/ -v  
+```
+Run Coverage
+```
+pytest --cov=scripts --cov-report=html  
+```
+Coverage Status: Greater than 80 percent
 
-
-### Coverage enabled using pytest-cov.
 
 ## Dashboard Access
 
